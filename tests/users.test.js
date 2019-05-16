@@ -66,3 +66,38 @@ test('Get Profile', async()=>{
 test('Get Profile with No token', async()=>{
     await request(app).get("/users/me").expect(401)
 })
+
+test("Should Upload avatar image", async()=>{
+    await request(app)
+        .post('/users/me/avatar')
+        .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
+        .attach('avatar', 'tests/fixtures/avatar.jpeg')
+        .expect(200)
+    
+    const user = await User.findById(userOneId)
+    expect(user.avatar).toEqual(expect.any(Buffer))
+})
+
+test("Should update valid user field", async()=>{
+    await request(app)
+        .patch('/users/me')
+        .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
+        .send({
+            name: "Kishore Kumar"
+        })
+        .expect(200)
+    
+    const user = await User.findById(userOneId)
+    expect(user.name).toEqual("Kishore Kumar")
+})
+
+test("Should not update invalid user field", async()=>{
+    await request(app)
+        .patch('/users/me')
+        .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
+        .send({
+            location: "Chennai"
+        })
+        .expect(400)
+
+})
